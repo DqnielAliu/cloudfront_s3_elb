@@ -14,12 +14,12 @@ data "aws_ami" "amazon-linux-2" {
 
 resource "aws_launch_template" "this" {
   name_prefix            = "${var.name}-lt-"
-  image_id               = var.ami_id != "" ? var.ami_id : data.aws_ami.amazon-linux-2.image_id
+  image_id               = var.ami_id != null ? var.ami_id : data.aws_ami.amazon-linux-2.image_id
   instance_type          = var.instance_type
   vpc_security_group_ids = length(var.security_group_ids) > 0 ? var.security_group_ids : [aws_security_group.default.id]
 
-  # key_name      = var.key_name
-  user_data = var.user_data != "" ? var.user_data : filebase64("./scripts/user-data.sh")
+  key_name  = var.key_name
+  user_data = var.user_data != null ? var.user_data : filebase64("./scripts/user-data.sh")
 
   iam_instance_profile {
     name = aws_iam_instance_profile.this.name
@@ -115,7 +115,7 @@ resource "aws_lb" "this" {
   enable_cross_zone_load_balancing = true
   enable_http2                     = true
   ip_address_type                  = "ipv4"
-  # enable_deletion_protection       = false
+  enable_deletion_protection       = false
 
   tags = merge(
     var.tags,

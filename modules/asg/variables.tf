@@ -17,11 +17,7 @@ variable "environment" {
 variable "tags" {
   type        = map(string)
   description = "A map of tags to apply to all resources"
-  default = {
-    Project     = "Simple-App"
-    Environment = "dev"
-    ManagedBy   = "Terraform"
-  }
+  default     = {}
 }
 
 # VPC Configuration
@@ -79,7 +75,7 @@ variable "target_group_arns" {
 variable "ami_id" {
   type        = string
   description = "The ID of the AMI to use for the EC2 instances (optional, will use latest Amazon Linux 2 if not provided)"
-  default     = ""
+  default     = null
 }
 
 variable "instance_type" {
@@ -91,7 +87,7 @@ variable "instance_type" {
 variable "key_name" {
   type        = string
   description = "The name of the EC2 Key Pair to allow SSH access"
-  default     = ""
+  default     = null
 }
 
 variable "security_group_ids" {
@@ -103,7 +99,7 @@ variable "security_group_ids" {
 variable "user_data" {
   type        = string
   description = "Path to the user data script to run on instance launch (optional)"
-  default     = ""
+  default     = null
 }
 
 #####################

@@ -20,6 +20,6 @@ provider "aws" {
   # These default tags below will be applied to the resource
   # if no tags are explictly defined in the resource.
   default_tags {
-    tags = local.default_tags
+    tags = local.tags
   }
 }

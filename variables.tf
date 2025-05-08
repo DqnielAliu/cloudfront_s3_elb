@@ -1,7 +1,7 @@
 variable "region" {
   description = "AWS region"
   type        = string
-  default     = "ap-southeast-1"
+  default     = "us-east-1"
 }
 
 variable "enable_caching" {
@@ -17,8 +17,8 @@ variable "enable_load_balancer_origin" {
   default     = true
 }
 
-variable "enable_cloudfront_logging" {
-  description = "Toggle the creation of an S3 bucket to store standard/access logs from CloudFront."
+variable "enable_logging" {
+  description = "Toggle the creation of an S3 bucket to store standard/access logs."
   type        = bool
   default     = false
 }
@@ -29,13 +29,7 @@ variable "enable_cloudfront_logging" {
 variable "acm_certificate_arn" {
   description = "ARN of ACM certificate. The certificate must be in the US East (N. Virginia) Region (us-east-1)."
   type        = string
-  default     = ""
-
-  validation {
-    # regex(...) fails if it cannot find a match
-    condition     = can(regex("^(arn:aws:acm:us-east-1:\\d{12}:certificate/)?", var.acm_certificate_arn))
-    error_message = "ARN of ACM must match the \"^arn:aws:acm:us-east-1:\\d{12}:certificate/\" pattern or an empty string"
-  }
+  default     = null
 }
 
 variable "hosted_zone_name" {

@@ -26,7 +26,7 @@ As no backend is defined, the default backend will be local. Do wait for 10-15 m
 1. `terraform destroy`
 2. If you enabled logging you will want to empty the bucket before destroying the infrastructure. On terminal it is:
 ```bash
-bucket_name="terraform-cloudfront-r13hve"
+bucket_name="cloudfront-logs-maec54"
 
 aws s3api delete-objects \
   --bucket ${bucket_name} \

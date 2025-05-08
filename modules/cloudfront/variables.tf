@@ -10,7 +10,7 @@ variable "s3_origin_id" {
 
 variable "acm_certificate_arn" {
   type        = string
-  default     = ""
+  default     = null
   description = "ARN of ACM certificate, to set custom SSL certificate"
 }
 
@@ -38,7 +38,7 @@ variable "enable_load_balancer_origin" {
   type = bool
 }
 
-variable "enable_cloudfront_logging" {
+variable "enable_logging" {
   type = bool
 }
 

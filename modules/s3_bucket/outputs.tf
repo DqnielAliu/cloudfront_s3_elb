@@ -7,7 +7,7 @@ output "s3_website_endpoint" {
 }
 
 output "logging_bucket_name" {
-  value = var.enable_cloudfront_logging ? aws_s3_bucket.standard_logging[0].id : ""
+  value = var.enable_logging ? aws_s3_bucket.logging[0].id : null
 }
 
 output "aws_canonical_user_id" {

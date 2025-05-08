@@ -10,28 +10,38 @@ data "aws_caller_identity" "current" {}
 data "aws_region" "current" {}
 
 # Logging Bucket
-resource "aws_s3_bucket" "standard_logging" {
-  count  = var.enable_cloudfront_logging ? 1 : 0
+resource "aws_s3_bucket" "logging" {
+  count  = var.enable_logging ? 1 : 0
   bucket = format("cloudfront-logs-%s", random_string.name_suffix.result)
+
+  tags = merge(
+    var.tags,
+    {
+      rule      = "log"
+      autoclean = true
+    }
+  )
 }
 
 resource "aws_s3_bucket_policy" "logging" {
-  count  = var.enable_cloudfront_logging ? 1 : 0
-  bucket = aws_s3_bucket.standard_logging[0].id
+  count  = var.enable_logging ? 1 : 0
+  bucket = aws_s3_bucket.logging[0].id
   policy = jsonencode({
     Version = "2012-10-17",
     Statement = [
       {
-        Sid      = "AllowCloudFrontServicePrincipal",
-        Effect   = "Allow",
-        Action   = ["s3:PutObject"],
-        Resource = ["${aws_s3_bucket.standard_logging[0].arn}/*"],
+        Sid    = "AllowCloudFrontServicePrincipal",
+        Effect = "Allow",
+        Action = [
+          "s3:PutObject",
+        ],
+        Resource = ["${aws_s3_bucket.logging[0].arn}/*"],
         Principal = {
           Service = "delivery.logs.amazonaws.com"
         },
         Condition = {
           StringEquals = {
-            "AWS:SourceArn"     = var.distribution_arn
+            "AWS:SourceArn"     = var.distribution_arn,
             "s3:x-amz-acl"      = "bucket-owner-full-control",
             "aws:SourceAccount" = data.aws_caller_identity.current.id
           }
@@ -41,18 +51,18 @@ resource "aws_s3_bucket_policy" "logging" {
   })
 }
 
-resource "aws_s3_bucket_ownership_controls" "standard_logging" {
-  count  = var.enable_cloudfront_logging ? 1 : 0
-  bucket = aws_s3_bucket.standard_logging[0].id
+resource "aws_s3_bucket_ownership_controls" "logging" {
+  count  = var.enable_logging ? 1 : 0
+  bucket = aws_s3_bucket.logging[0].id
 
   rule {
     object_ownership = "BucketOwnerPreferred" # BucketOwnerPreferred | ObjectWriter | BucketOwnerEnforced
   }
 }
 
-resource "aws_s3_bucket_acl" "standard_logging" {
-  count  = var.enable_cloudfront_logging ? 1 : 0
-  bucket = aws_s3_bucket.standard_logging[0].id
+resource "aws_s3_bucket_acl" "logging" {
+  count  = var.enable_logging ? 1 : 0
+  bucket = aws_s3_bucket.logging[0].id
 
   access_control_policy {
     grant {
@@ -68,14 +78,33 @@ resource "aws_s3_bucket_acl" "standard_logging" {
     }
   }
 
-  depends_on = [aws_s3_bucket_ownership_controls.standard_logging]
+  depends_on = [aws_s3_bucket_ownership_controls.logging]
+}
+
+resource "aws_s3_bucket_lifecycle_configuration" "logging" {
+  count  = var.enable_logging ? 1 : 0
+  bucket = aws_s3_bucket.logging[0].id
+  rule {
+    id     = "MoveToIntelligentTierAndExpire"
+    status = "Enabled"
+    filter {
+      prefix = "AWSLogs/"
+    }
+    transition {
+      days          = 60
+      storage_class = "INTELLIGENT_TIERING"
+    }
+    expiration {
+      days = 180
+    }
+  }
 }
 
 resource "aws_s3_bucket_logging" "website_logging" {
-  count         = var.enable_cloudfront_logging ? 1 : 0
-  bucket        = aws_s3_bucket.standard_logging[0].id
+  count         = var.enable_logging ? 1 : 0
+  bucket        = aws_s3_bucket.logging[0].id
   target_bucket = aws_s3_bucket.main.id
-  target_prefix = "log/${aws_s3_bucket.main.id}/"
+  target_prefix = "AWSLogs/${data.aws_caller_identity.current.account_id}/${aws_s3_bucket.main.id}/"
 }
 
 # Main S3 Bucket

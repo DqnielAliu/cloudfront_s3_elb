@@ -1,22 +1,24 @@
-variable "default_tags" {
-  type = map(any)
+variable "tags" {
+  type    = map(any)
+  default = {}
 }
 
-variable "vpc_cidr_block" {
-  type = string
+variable "vpc_cidr" {
+  description = "The CIDR block for the VPC"
+  type        = string
+  default     = "10.0.0.0/16"
 }
 
-### list (or tuple): a sequence of values
-variable "list_of_subnet_cidr_range" {
+variable "public_subnet_cidr" {
+  description = "The CIDR block for the public subnet"
+  type        = list(string)
+  default     = ["10.0.0.0/24"]
+}
+
+variable "availability_zones" {
   type = list(string)
-  ### Functions may not be called here.
-  #   default = cidrsubnets("10.1.0.0/20", 4, 4, 4)
 }
 
-variable "list_of_azs" {
-  type = list(string)
-}
-
-variable "ALB_sg_id" {
+variable "alb_sg_id" {
   type = string
 }

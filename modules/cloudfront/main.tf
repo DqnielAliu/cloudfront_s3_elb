@@ -1,3 +1,4 @@
+data "aws_caller_identity" "current" {}
 resource "aws_cloudfront_distribution" "elb_s3_distribution" {
   comment             = "Created from Terraform"
   default_root_object = "index.html"
@@ -78,10 +79,10 @@ resource "aws_cloudfront_distribution" "elb_s3_distribution" {
     }
   }
 
-  aliases = var.acm_certificate_arn != "" ? ["www.${var.hosted_zone_name}"] : []
+  aliases = var.acm_certificate_arn != null ? ["www.${var.hosted_zone_name}"] : []
 
   viewer_certificate {
-    cloudfront_default_certificate = var.acm_certificate_arn == ""
+    cloudfront_default_certificate = var.acm_certificate_arn == null ? true : false
     /*
     minimum_protocol_version:
     Minimum version of the SSL protocol that you want CloudFront to use for HTTPS connections. 
@@ -96,11 +97,11 @@ resource "aws_cloudfront_distribution" "elb_s3_distribution" {
     One of vip, sni-only, or static-ip. 
     Required if you specify acm_certificate_arn or iam_certificate_id
     */
-    ssl_support_method = var.acm_certificate_arn != "" ? "sni-only" : null
+    ssl_support_method = var.acm_certificate_arn == null ? "sni-only" : null
   }
 
   dynamic "logging_config" {
-    for_each = var.enable_cloudfront_logging ? [1] : []
+    for_each = var.enable_logging ? [1] : []
 
     content {
       bucket          = "${var.logging_bucket_name}.s3.amazonaws.com"
@@ -119,11 +120,11 @@ resource "aws_cloudfront_origin_access_control" "site_bucket" {
   signing_protocol                  = "sigv4"
 }
 
-resource "aws_route53_record" "www" {
-  count   = var.acm_certificate_arn != "" ? 1 : 0
-  zone_id = var.hosted_zone_id
-  name    = format("www.%s", var.hosted_zone_name)
-  type    = "CNAME"
-  ttl     = 60
-  records = [aws_cloudfront_distribution.elb_s3_distribution.domain_name]
-}
+# resource "aws_route53_record" "www" {
+#   count   = var.acm_certificate_arn != null ? 1 : 0
+#   zone_id = var.hosted_zone_id
+#   name    = format("www.%s", var.hosted_zone_name)
+#   type    = "CNAME"
+#   ttl     = 60
+#   records = [aws_cloudfront_distribution.elb_s3_distribution.domain_name]
+# }

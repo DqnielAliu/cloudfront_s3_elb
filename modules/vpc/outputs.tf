@@ -1,11 +1,11 @@
 output "vpc_id" {
-  value = aws_vpc.main.id
+  value = aws_vpc.this.id
 }
 
 output "sg_id" {
-  value = aws_security_group.allow_tls.id
+  value = aws_security_group.ec2.id
 }
 
 output "list_of_subnet_ids" {
-  value = aws_subnet.public_subnet[*].id
+  value = aws_subnet.public[*].id
 }
